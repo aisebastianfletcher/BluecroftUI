@@ -52,18 +52,10 @@ export async function askUnderwriterAI(question: string, context?: any): Promise
 }
 
 /**
- * Backwards-compatible default export: keep getRiskReport if other code expects it.
- * You can either implement getRiskReport here or alias to generateRiskAnalysis.
+ * Backwards-compatible default export: alias to generateRiskAnalysis.
  */
 export async function getRiskReport(prompt: string): Promise<GeminiResponse> {
   return generateRiskAnalysis({ prompt });
 }
 
-export default getRiskReport;  return {
-    summary: 'Demo risk report generated (replace with real Gemini integration).',
-    raw: { promptProvided: prompt },
-  };
-}
-
-// Default export to match either default or named import styles.
 export default getRiskReport;
