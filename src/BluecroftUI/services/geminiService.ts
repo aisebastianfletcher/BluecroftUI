@@ -28,12 +28,6 @@ export async function getRiskReport(prompt: string): Promise<GeminiResponse> {
   }
 
   // TODO: Implement real Gemini client usage here.
-  // Example (pseudo):
-  // import {TextServiceClient} from '@google/genai';
-  // const client = new TextServiceClient({ apiKey });
-  // const response = await client.generate(...);
-  // return { summary: parsedSummary, raw: response };
-
   return {
     summary: 'Demo risk report generated (replace with real Gemini integration).',
     raw: { promptProvided: prompt },
