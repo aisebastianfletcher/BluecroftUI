@@ -1,9 +1,12 @@
 /**
- * Lightweight stub for Gemini calls.
- * Add this file at: src/services/geminiService.ts
+ * Gemini service stubs for build-time completeness.
+ * Exports the named functions used by App.tsx:
+ *  - parseDocument
+ *  - generateRiskAnalysis
+ *  - checkAreaValuation
+ *  - askUnderwriterAI
  *
- * This stub satisfies the import used by App.tsx and prevents the Vite build error.
- * Replace the implementation with real @google/genai/Gemini calls when you're ready.
+ * Replace the stub implementations with your actual @google/genai/Gemini integration.
  */
 
 export interface GeminiResponse {
@@ -11,30 +14,52 @@ export interface GeminiResponse {
   raw?: any;
 }
 
+export interface ParsedDocument {
+  text: string;
+  metadata?: Record<string, any>;
+}
+
+export async function parseDocument(fileData: string): Promise<ParsedDocument> {
+  // Stub: in production, parse the uploaded file (OCR/structure) or extract text
+  return {
+    text: typeof fileData === 'string' ? fileData : '',
+    metadata: {},
+  };
+}
+
+export async function generateRiskAnalysis(loanData: any): Promise<GeminiResponse> {
+  // Stub: call Gemini/TextServiceClient here to produce a risk summary
+  return {
+    summary: 'Demo risk analysis. Replace with real Gemini response.',
+    raw: { loanDataProvided: loanData },
+  };
+}
+
+export async function checkAreaValuation(addressOrLocation: string): Promise<GeminiResponse> {
+  // Stub: use a valuation API or LLM to summarize area valuation
+  return {
+    summary: `Demo area valuation for ${addressOrLocation}`,
+    raw: null,
+  };
+}
+
+export async function askUnderwriterAI(question: string, context?: any): Promise<GeminiResponse> {
+  // Stub: use Gemini to ask underwriting questions
+  return {
+    summary: `Demo answer to: ${question}`,
+    raw: { contextProvided: context },
+  };
+}
+
 /**
- * getRiskReport
- * Simple placeholder function that returns a demo report.
- * Replace with a real API call to @google/genai / Gemini when available.
+ * Backwards-compatible default export: keep getRiskReport if other code expects it.
+ * You can either implement getRiskReport here or alias to generateRiskAnalysis.
  */
 export async function getRiskReport(prompt: string): Promise<GeminiResponse> {
-  const apiKey = (process.env.GEMINI_API_KEY as string | undefined);
+  return generateRiskAnalysis({ prompt });
+}
 
-  if (!apiKey) {
-    // Running in demo mode; don't attempt network calls
-    return {
-      summary: 'Gemini API key not available — running in demo mode.',
-      raw: { promptProvided: prompt },
-    };
-  }
-
-  // TODO: Implement real Gemini client usage here.
-  // Example (pseudo):
-  // import {TextServiceClient} from '@google/genai';
-  // const client = new TextServiceClient({ apiKey });
-  // const response = await client.generate(...);
-  // return { summary: parsedSummary, raw: response };
-
-  return {
+export default getRiskReport;  return {
     summary: 'Demo risk report generated (replace with real Gemini integration).',
     raw: { promptProvided: prompt },
   };
