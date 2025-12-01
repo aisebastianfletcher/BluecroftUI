@@ -6,7 +6,7 @@
  *  - checkAreaValuation
  *  - askUnderwriterAI
  *
- * Replace the stub implementations with your actual @google/genai/Gemini integration.
+ * Replace these stubs with your actual @google/genai/Gemini integration when ready.
  */
 
 export interface GeminiResponse {
