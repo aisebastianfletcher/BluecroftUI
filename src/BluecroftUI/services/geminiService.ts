@@ -1,9 +1,15 @@
 /**
- * Lightweight stub for Gemini calls.
- * Place this file at: src/BluecroftUI/services/geminiService.ts
+ * Gemini service stubs required by App.tsx.
  *
- * This stub satisfies the import used by src/BluecroftUI/App.tsx and prevents the Vite build error.
- * Replace the implementation with real @google/genai/Gemini calls when you're ready.
+ * Exports:
+ *  - parseDocument
+ *  - generateRiskAnalysis
+ *  - checkAreaValuation
+ *  - askUnderwriterAI
+ *  - getRiskReport (default)
+ *
+ * These are lightweight placeholders so the app can build. Replace with
+ * a secure server-side integration when ready.
  */
 
 export interface GeminiResponse {
@@ -11,28 +17,63 @@ export interface GeminiResponse {
   raw?: any;
 }
 
+export interface ParsedDocument {
+  text: string;
+  metadata?: Record<string, any>;
+}
+
+const DEMO_PREFIX = 'DEMO:';
+
 /**
- * getRiskReport
- * Simple placeholder function that returns a demo report.
- * Replace with a real API call to @google/genai / Gemini when available.
+ * parseDocument
+ * - Lightweight parser stub: returns the input as text when no API key is available.
  */
-export async function getRiskReport(prompt: string): Promise<GeminiResponse> {
-  const apiKey = (process.env.GEMINI_API_KEY as string | undefined);
-
-  if (!apiKey) {
-    // Running in demo mode; don't attempt network calls
-    return {
-      summary: 'Gemini API key not available — running in demo mode.',
-      raw: { promptProvided: prompt },
-    };
-  }
-
-  // TODO: Implement real Gemini client usage here.
+export async function parseDocument(fileData: string): Promise<ParsedDocument> {
+  // If you later wire a backend, call it here instead of returning a demo value.
   return {
-    summary: 'Demo risk report generated (replace with real Gemini integration).',
-    raw: { promptProvided: prompt },
+    text: typeof fileData === 'string' ? fileData : String(fileData),
+    metadata: {},
   };
 }
 
-// Default export to match either default or named import styles.
+/**
+ * generateRiskAnalysis
+ * - Stub that returns a demo GeminiResponse; replace with real model call.
+ */
+export async function generateRiskAnalysis(loanData: any): Promise<GeminiResponse> {
+  return {
+    summary: `${DEMO_PREFIX} Risk analysis placeholder for loanData: ${JSON.stringify(loanData)}`,
+    raw: { provided: loanData },
+  };
+}
+
+/**
+ * checkAreaValuation
+ * - Stub returning a demo area valuation summary.
+ */
+export async function checkAreaValuation(addressOrLocation: string): Promise<GeminiResponse> {
+  return {
+    summary: `${DEMO_PREFIX} Area valuation placeholder for ${addressOrLocation}`,
+    raw: { location: addressOrLocation },
+  };
+}
+
+/**
+ * askUnderwriterAI
+ * - Stub that returns a canned answer for underwriter questions.
+ */
+export async function askUnderwriterAI(question: string, context?: any): Promise<GeminiResponse> {
+  return {
+    summary: `${DEMO_PREFIX} Answer to: ${question}`,
+    raw: { contextProvided: context ?? null },
+  };
+}
+
+/**
+ * Backwards-compatible default export
+ */
+export async function getRiskReport(prompt: string): Promise<GeminiResponse> {
+  return generateRiskAnalysis({ prompt });
+}
+
 export default getRiskReport;
