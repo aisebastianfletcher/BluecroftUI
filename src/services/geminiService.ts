@@ -3,16 +3,16 @@ import { LoanData, CalculatedMetrics, RiskReport, AreaValuation, UploadedFile } 
 
 // --- CONFIGURATION ---
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
-console.log("DEBUG: Key Length is", API_KEY.length); 
-
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
-// Improved JSON Cleaner: Finds the actual JSON object inside any text the AI babbles
+// Use the specific stable model that triggers the v1 API
+// You can change this to "models/gemini-1.5-pro-002" if you want the smarter/slower model
+const MODEL_NAME = "models/gemini-1.5-flash-002";
+
+// Helper: robustly find JSON in AI response
 const extractJSON = (text: string) => {
   try {
-    // 1. Try standard cleaning
     let clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    // 2. If that fails, look for the first '{' and last '}'
     const firstOpen = clean.indexOf('{');
     const lastClose = clean.lastIndexOf('}');
     if (firstOpen !== -1 && lastClose !== -1) {
@@ -20,154 +20,80 @@ const extractJSON = (text: string) => {
     }
     return JSON.parse(clean);
   } catch (e) {
-    console.error("JSON Parse Error on text:", text);
-    throw new Error("Failed to parse AI response");
+    console.error("JSON Parse Error:", e);
+    return null;
   }
 };
 
 /**
- * 1. PARSE DOCUMENT (Aggressive Extraction)
+ * 1. PARSE DOCUMENT
  */
 export const parseDocument = async (files: UploadedFile[]): Promise<Partial<LoanData>> => {
-  if (!genAI || files.length === 0) {
-    console.warn("No API Key or No Files provided for parsing.");
-    return {};
+  if (!genAI) {
+    alert("API Key missing. Using Demo Data.");
+    return getMockParseData();
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-pro-002" });
-
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    
     const fileParts: Part[] = files.map(file => ({
-      inlineData: {
-        data: file.data,
-        mimeType: file.type,
-      },
+      inlineData: { data: file.data, mimeType: file.type },
     }));
 
     const prompt = `
-      You are a Data Entry Specialist for a bank. 
-      Analyze the attached images/PDFs (Application Forms, Bank Statements, Accounts).
-      
-      Extract ALL available financial data. If a field is missing, estimate it based on context or use 0.
-      
-      CRITICAL: Return ONLY a valid JSON object matching this structure exactly:
-      {
-        "applicants": [{
-          "name": "Full Name",
-          "annualIncome": 123456 (number),
-          "monthlyExpenses": 1234 (number),
-          "totalAssets": 1234567 (number),
-          "totalLiabilities": 123456 (number)
-        }],
-        "loanAmount": 123456 (number),
-        "propertyValue": 123456 (number),
-        "purchasePrice": 123456 (number),
-        "refurbCost": 123456 (number),
-        "propertyAddress": "Full Property Address",
-        "loanType": "Bridging" (or "Refurbishment")
-      }
-      
-      - If there are joint applicants, include both in the array.
-      - Look closely for "Assets" and "Liabilities" summaries.
-      - Do not include markdown formatting.
+      Extract financial data from these documents into strict JSON.
+      Fields: applicants (name, annualIncome, monthlyExpenses, totalAssets, totalLiabilities), loanAmount, propertyValue, propertyAddress, loanType.
+      Return JSON ONLY. No markdown.
     `;
 
     const result = await model.generateContent([prompt, ...fileParts]);
     const parsed = extractJSON(result.response.text());
-    
-    console.log("Document Data Extracted:", parsed);
-    return parsed;
+    return parsed || getMockParseData();
 
   } catch (error) {
-    console.error("Parsing failed:", error);
-    return {};
+    console.error("AI Parse Failed:", error);
+    return getMockParseData();
   }
 };
 
 /**
- * 2. AREA VALUATION (The "Zoopla" Simulator)
+ * 2. AREA VALUATION
  */
 export const checkAreaValuation = async (address: string): Promise<AreaValuation> => {
-  if (!genAI) return { summary: "API Key Missing. Please configure VITE_GEMINI_API_KEY in AWS.", estimatedValue: 0, confidence: 0 };
+  if (!genAI) return getMockValuation(address);
 
   try {
-    const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-pro-002" });
-    
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
     const prompt = `
-      Act as a RICS Surveyor and Market Analyst.
-      Perform a desktop market valuation for: "${address}".
-      
-      You must simulate a "Zoopla" or "Rightmove" area report.
-      
-      Return a JSON object with:
-      1. "summary": A detailed market commentary (approx 100 words). MUST include:
-         - Recent sold price examples in this postcode (simulate specific addresses/prices).
-         - Average £ per sq ft for the area.
-         - Market liquidity (Hot/Cold).
-         - Demand profile (Families/Professionals/Investors).
-      2. "estimatedValue": Your estimated Open Market Value (number).
-      3. "confidence": A float between 0.1 and 1.0 (based on how precise the address is).
-      
-      JSON Only. No markdown.
+      Act as a UK Surveyor. Analyze market for: "${address}".
+      Return JSON: { "summary": "Detailed commentary...", "estimatedValue": number, "confidence": number }
+      JSON Only.
     `;
-
     const result = await model.generateContent(prompt);
-    return extractJSON(result.response.text());
-
+    return extractJSON(result.response.text()) || getMockValuation(address);
   } catch (error) {
-    console.error("Valuation failed:", error);
-    return { 
-      summary: "Unable to retrieve market data. Please verify the address.", 
-      estimatedValue: 0, 
-      confidence: 0 
-    };
+    return getMockValuation(address);
   }
 };
 
 /**
- * 3. RISK ANALYSIS (Detailed Action Plan)
+ * 3. RISK ANALYSIS
  */
 export const generateRiskAnalysis = async (loanData: LoanData, metrics: CalculatedMetrics): Promise<RiskReport> => {
-  if (!genAI) return { score: 0, summary: "API Key Missing", risks: [], mitigations: [], nextSteps: [] };
+  if (!genAI) return getMockRiskReport(metrics);
 
   try {
-    const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-pro-002" });
-
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
     const prompt = `
-      Act as a Senior Credit Underwriter. Analyze this Bridging Loan.
-      
-      Data:
-      - Address: ${loanData.propertyAddress}
-      - Loan: £${loanData.loanAmount}
-      - Value: £${loanData.propertyValue} (LTV: ${metrics.ltv.toFixed(2)}%)
-      - Exit: ${loanData.exitStrategy}
-      - Applicant Income: £${loanData.applicants[0]?.annualIncome || 0}
-      
-      Return a JSON object:
-      {
-        "score": number (0-100),
-        "summary": "Strict underwriting memo style. Comment on LTV, Security, and Exit.",
-        "risks": ["Risk 1", "Risk 2", "Risk 3", "Risk 4"],
-        "mitigations": ["Mitigation 1", "Mitigation 2", "Mitigation 3"],
-        "nextSteps": [
-          "Detailed Condition 1 (e.g. 'Subject to RICS Red Book Valuation')",
-          "Detailed Condition 2 (e.g. 'Evidence of Source of Funds')",
-          "Detailed Condition 3 (e.g. 'Solicitor confirmation of title')",
-          "Detailed Condition 4",
-          "Detailed Condition 5",
-          "Detailed Condition 6"
-        ]
-      }
-      
-      Make the "nextSteps" very specific to UK bridging finance (e.g., mention PG's, Debentures, Building Regs).
+      Act as a Credit Underwriter. Analyze Loan: £${loanData.loanAmount}, LTV: ${metrics.ltv.toFixed(1)}%.
+      Return JSON: { "score": number, "summary": "Memo...", "risks": [], "mitigations": [], "nextSteps": [] }
+      JSON Only.
     `;
-
     const result = await model.generateContent(prompt);
-    return extractJSON(result.response.text());
-
+    return extractJSON(result.response.text()) || getMockRiskReport(metrics);
   } catch (error) {
-    console.error("Risk Analysis failed:", error);
-    return { score: 0, summary: "Analysis Failed", risks: [], mitigations: [], nextSteps: [] };
+    return getMockRiskReport(metrics);
   }
 };
 
@@ -177,16 +103,27 @@ export const generateRiskAnalysis = async (loanData: LoanData, metrics: Calculat
 export const askUnderwriterAI = async (question: string, loanData: LoanData, metrics: CalculatedMetrics | null, riskReport: RiskReport | null, fileNames: string[]): Promise<string> => {
   if (!genAI) return "I am in Demo Mode. Add an API Key to chat with me!";
   try {
-    const model = genAI.getGenerativeModel({ model: "models/gemini-1.5-pro-002" });
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    
     const context = `
-      System: You are an expert Underwriter.
+      System: You are an expert Underwriter using Gemini 1.5.
       Context: Property at ${loanData.propertyAddress}. Loan £${loanData.loanAmount}.
       User Question: ${question}
     `;
+    
     const result = await model.generateContent(context);
     return result.response.text();
   } catch (e: any) { 
-    console.error("Gemini Chat Error:", e); // This prints the real error to your browser console
+    console.error("Gemini Chat Error:", e);
     return `Error: ${e.message || "Connection failed"}`; 
   }
 };
+
+// --- MOCK DATA FALLBACKS ---
+const getMockParseData = (): Partial<LoanData> => ({
+  applicants: [{ id: "mock-1", name: "Demo Applicant", annualIncome: 100000, monthlyExpenses: 2000, totalAssets: 500000, totalLiabilities: 100000 }],
+  propertyAddress: "22 Demo Lane, London",
+  loanAmount: 250000, propertyValue: 400000
+});
+const getMockValuation = (address: string): AreaValuation => ({ summary: `(Demo) Market analysis for ${address}...`, estimatedValue: 500000, confidence: 0.8 });
+const getMockRiskReport = (metrics: CalculatedMetrics): RiskReport => ({ score: 75, summary: "(Demo) Standard risk report...", risks: ["Demo Risk"], mitigations: ["Demo Mitigation"], nextSteps: ["Demo Step"] });
