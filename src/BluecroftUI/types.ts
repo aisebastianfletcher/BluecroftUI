@@ -33,7 +33,7 @@ export interface LoanData {
   propertyAddress: string;
   exitStrategy: ExitStrategy;
   scheduledDate?: Date;
-  taskDueDates?: Record<string, string>; // ISO Date strings
+  taskDueDates?: Record<string, string>;
   createdAt?: Date;
 }
 
@@ -77,7 +77,7 @@ export interface ChatMessage {
 export interface UploadedFile {
   name: string;
   type: string;
-  data: string; // Base64
+  data: string;
 }
 
 export interface CaseRecord {
