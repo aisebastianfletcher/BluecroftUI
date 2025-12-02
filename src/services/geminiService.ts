@@ -5,19 +5,17 @@ import { LoanData, CalculatedMetrics, RiskReport, AreaValuation, UploadedFile } 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
-// Use the specific stable model that triggers the v1 API
-// You can change this to "models/gemini-1.5-pro-latest" if you want the smarter/slower model
-const MODEL_NAME = "gemini-1.5-pro-latest";
+// ✅ USE THIS MODEL. It is the latest stable version verified to work with the new SDK.
+// (Avoid "gemini-2.0-pro" as it likely doesn't exist publicly yet)
+const MODEL_NAME = "gemini-1.5-flash"; 
 
-// Helper: robustly find JSON in AI response
+// Helper: robust JSON extraction from AI responses
 const extractJSON = (text: string) => {
   try {
     let clean = text.replace(/```json/g, '').replace(/```/g, '').trim();
     const firstOpen = clean.indexOf('{');
     const lastClose = clean.lastIndexOf('}');
-    if (firstOpen !== -1 && lastClose !== -1) {
-      clean = clean.substring(firstOpen, lastClose + 1);
-    }
+    if (firstOpen !== -1 && lastClose !== -1) clean = clean.substring(firstOpen, lastClose + 1);
     return JSON.parse(clean);
   } catch (e) {
     console.error("JSON Parse Error:", e);
@@ -29,14 +27,10 @@ const extractJSON = (text: string) => {
  * 1. PARSE DOCUMENT
  */
 export const parseDocument = async (files: UploadedFile[]): Promise<Partial<LoanData>> => {
-  if (!genAI) {
-    alert("API Key missing. Using Demo Data.");
-    return getMockParseData();
-  }
+  if (!genAI || files.length === 0) return {};
 
   try {
     const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-    
     const fileParts: Part[] = files.map(file => ({
       inlineData: { data: file.data, mimeType: file.type },
     }));
@@ -48,12 +42,10 @@ export const parseDocument = async (files: UploadedFile[]): Promise<Partial<Loan
     `;
 
     const result = await model.generateContent([prompt, ...fileParts]);
-    const parsed = extractJSON(result.response.text());
-    return parsed || getMockParseData();
-
+    return extractJSON(result.response.text()) || {};
   } catch (error) {
     console.error("AI Parse Failed:", error);
-    return getMockParseData();
+    return {};
   }
 };
 
@@ -61,7 +53,7 @@ export const parseDocument = async (files: UploadedFile[]): Promise<Partial<Loan
  * 2. AREA VALUATION
  */
 export const checkAreaValuation = async (address: string): Promise<AreaValuation> => {
-  if (!genAI) return getMockValuation(address);
+  if (!genAI) return { summary: "API Key Missing", estimatedValue: 0, confidence: 0 };
 
   try {
     const model = genAI.getGenerativeModel({ model: MODEL_NAME });
@@ -71,9 +63,10 @@ export const checkAreaValuation = async (address: string): Promise<AreaValuation
       JSON Only.
     `;
     const result = await model.generateContent(prompt);
-    return extractJSON(result.response.text()) || getMockValuation(address);
+    return extractJSON(result.response.text()) || { summary: "Valuation failed", estimatedValue: 0, confidence: 0 };
   } catch (error) {
-    return getMockValuation(address);
+    console.error("Area Valuation Failed:", error);
+    return { summary: "Valuation Error", estimatedValue: 0, confidence: 0 };
   }
 };
 
@@ -81,7 +74,7 @@ export const checkAreaValuation = async (address: string): Promise<AreaValuation
  * 3. RISK ANALYSIS
  */
 export const generateRiskAnalysis = async (loanData: LoanData, metrics: CalculatedMetrics): Promise<RiskReport> => {
-  if (!genAI) return getMockRiskReport(metrics);
+  if (!genAI) return { score: 0, summary: "API Key Missing", risks: [], mitigations: [], nextSteps: [] };
 
   try {
     const model = genAI.getGenerativeModel({ model: MODEL_NAME });
@@ -91,39 +84,45 @@ export const generateRiskAnalysis = async (loanData: LoanData, metrics: Calculat
       JSON Only.
     `;
     const result = await model.generateContent(prompt);
-    return extractJSON(result.response.text()) || getMockRiskReport(metrics);
+    return extractJSON(result.response.text()) || { score: 0, summary: "Analysis failed", risks: [], mitigations: [], nextSteps: [] };
   } catch (error) {
-    return getMockRiskReport(metrics);
+    console.error("Risk Analysis Failed:", error);
+    return { score: 0, summary: "Analysis Error", risks: [], mitigations: [], nextSteps: [] };
   }
 };
 
 /**
  * 4. CHAT ASSISTANT
+ * (Arguments updated to match App.tsx so the AI isn't 'blind' to the risk report)
  */
-export const askUnderwriterAI = async (question: string, loanData: LoanData, metrics: CalculatedMetrics | null, riskReport: RiskReport | null, fileNames: string[]): Promise<string> => {
-  if (!genAI) return "I am in Demo Mode. Add an API Key to chat with me!";
+export const askUnderwriterAI = async (
+  question: string, 
+  loanData: LoanData, 
+  metrics: CalculatedMetrics | null, 
+  riskReport: RiskReport | null, 
+  fileNames: string[]
+): Promise<string> => {
+  if (!genAI) return "Demo Mode: API Key missing.";
+
   try {
     const model = genAI.getGenerativeModel({ model: MODEL_NAME });
     
+    // We include metrics and risk score in the prompt so the AI answers intelligently
     const context = `
-      System: You are an expert Underwriter using Gemini 1.5.
-      Context: Property at ${loanData.propertyAddress}. Loan £${loanData.loanAmount}.
+      System: You are an expert UK Underwriter.
+      Context: 
+      - Property: ${loanData.propertyAddress}
+      - Loan: £${loanData.loanAmount}
+      - LTV: ${metrics ? metrics.ltv.toFixed(2) + "%" : "N/A"}
+      - Risk Score: ${riskReport ? riskReport.score : "N/A"}
+      
       User Question: ${question}
     `;
     
     const result = await model.generateContent(context);
     return result.response.text();
-  } catch (e: any) { 
+  } catch (e: any) {
     console.error("Gemini Chat Error:", e);
-    return `Error: ${e.message || "Connection failed"}`; 
+    return `Error: ${e.message || "Connection failed"}`;
   }
 };
-
-// --- MOCK DATA FALLBACKS ---
-const getMockParseData = (): Partial<LoanData> => ({
-  applicants: [{ id: "mock-1", name: "Demo Applicant", annualIncome: 100000, monthlyExpenses: 2000, totalAssets: 500000, totalLiabilities: 100000 }],
-  propertyAddress: "22 Demo Lane, London",
-  loanAmount: 250000, propertyValue: 400000
-});
-const getMockValuation = (address: string): AreaValuation => ({ summary: `(Demo) Market analysis for ${address}...`, estimatedValue: 500000, confidence: 0.8 });
-const getMockRiskReport = (metrics: CalculatedMetrics): RiskReport => ({ score: 75, summary: "(Demo) Standard risk report...", risks: ["Demo Risk"], mitigations: ["Demo Mitigation"], nextSteps: ["Demo Step"] });
