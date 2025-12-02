@@ -175,11 +175,18 @@ export const generateRiskAnalysis = async (loanData: LoanData, metrics: Calculat
  * 4. CHAT ASSISTANT
  */
 export const askUnderwriterAI = async (question: string, loanData: LoanData, metrics: CalculatedMetrics | null, riskReport: RiskReport | null, fileNames: string[]): Promise<string> => {
-  if (!genAI) return "API Key missing.";
+  if (!genAI) return "I am in Demo Mode. Add an API Key to chat with me!";
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const context = `Context: Loan for ${loanData.propertyAddress}, LTV ${metrics?.ltv.toFixed(1)}%. Question: ${question}`;
+    const context = `
+      System: You are an expert Underwriter.
+      Context: Property at ${loanData.propertyAddress}. Loan £${loanData.loanAmount}.
+      User Question: ${question}
+    `;
     const result = await model.generateContent(context);
     return result.response.text();
-  } catch (e) { return "I couldn't process that."; }
+  } catch (e: any) { 
+    console.error("Gemini Chat Error:", e); // This prints the real error to your browser console
+    return `Error: ${e.message || "Connection failed"}`; 
+  }
 };
