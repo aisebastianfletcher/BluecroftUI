@@ -1,79 +1,40 @@
-/**
- * Gemini service stubs required by App.tsx.
- *
- * Exports:
- *  - parseDocument
- *  - generateRiskAnalysis
- *  - checkAreaValuation
- *  - askUnderwriterAI
- *  - getRiskReport (default)
- *
- * These are lightweight placeholders so the app can build. Replace with
- * a secure server-side integration when ready.
- */
+import { GoogleGenerativeAI } from "@google/genai";
+import { LoanData, CalculatedMetrics, RiskReport, AreaValuation, UploadedFile } from "../types";
 
-export interface GeminiResponse {
-  summary: string;
-  raw?: any;
-}
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
+const MOCK_DELAY = 1000;
 
-export interface ParsedDocument {
-  text: string;
-  metadata?: Record<string, any>;
-}
-
-const DEMO_PREFIX = 'DEMO:';
-
-/**
- * parseDocument
- * - Lightweight parser stub: returns the input as text when no API key is available.
- */
-export async function parseDocument(fileData: string): Promise<ParsedDocument> {
-  // If you later wire a backend, call it here instead of returning a demo value.
+export const parseDocument = async (files: UploadedFile[]): Promise<Partial<LoanData>> => {
+  await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
   return {
-    text: typeof fileData === 'string' ? fileData : String(fileData),
-    metadata: {},
+    loanAmount: 350000,
+    propertyValue: 500000,
+    propertyAddress: "Extracted Address, London, SW1",
   };
-}
+};
 
-/**
- * generateRiskAnalysis
- * - Stub that returns a demo GeminiResponse; replace with real model call.
- */
-export async function generateRiskAnalysis(loanData: any): Promise<GeminiResponse> {
+export const generateRiskAnalysis = async (loanData: LoanData, metrics: CalculatedMetrics): Promise<RiskReport> => {
+  await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
   return {
-    summary: `${DEMO_PREFIX} Risk analysis placeholder for loanData: ${JSON.stringify(loanData)}`,
-    raw: { provided: loanData },
+      score: Math.max(0, Math.min(100, 100 - (metrics.ltv - 50) * 2)),
+      summary: `AI Analysis complete for ${loanData.propertyAddress}. The LTV of ${metrics.ltv.toFixed(1)}% is the primary risk factor.`,
+      risks: ["High Loan to Value", "Short leasehold implications (if applicable)"],
+      mitigations: ["Strong applicant asset profile", "Confirmed exit strategy via sale"],
+      nextSteps: ["Request full valuation report", "Confirm 12 months mortgage history", "ID Checks"]
   };
-}
+};
 
-/**
- * checkAreaValuation
- * - Stub returning a demo area valuation summary.
- */
-export async function checkAreaValuation(addressOrLocation: string): Promise<GeminiResponse> {
+export const checkAreaValuation = async (address: string): Promise<AreaValuation> => {
+  await new Promise(resolve => setTimeout(resolve, MOCK_DELAY));
   return {
-    summary: `${DEMO_PREFIX} Area valuation placeholder for ${addressOrLocation}`,
-    raw: { location: addressOrLocation },
+    summary: "The area has seen a 5% growth in the last 12 months. High demand for residential refurbishment projects.",
+    estimatedValue: 450000,
+    confidence: 0.85
   };
-}
+};
 
-/**
- * askUnderwriterAI
- * - Stub that returns a canned answer for underwriter questions.
- */
-export async function askUnderwriterAI(question: string, context?: any): Promise<GeminiResponse> {
-  return {
-    summary: `${DEMO_PREFIX} Answer to: ${question}`,
-    raw: { contextProvided: context ?? null },
-  };
-}
-
-/**
- * Backwards-compatible default export
- */
-export async function getRiskReport(prompt: string): Promise<GeminiResponse> {
-  return generateRiskAnalysis({ prompt });
-}
-
-export default getRiskReport;
+export const askUnderwriterAI = async (question: string, loanData: LoanData, metrics: CalculatedMetrics | null, riskReport: RiskReport | null, fileNames: string[]): Promise<string> => {
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  return `I have analyzed the case for ${loanData.propertyAddress}. Regarding "${question}": Typically, for a loan of £${loanData.loanAmount}, we would require 3 months of bank statements.`;
+};
