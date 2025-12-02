@@ -7,7 +7,7 @@ const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
 // Use the specific stable model that triggers the v1 API
 // You can change this to "models/gemini-1.5-pro-002" if you want the smarter/slower model
-const MODEL_NAME = "models/gemini-1.5-flash-002";
+const MODEL_NAME = "gemini-1.5-pro";
 
 // Helper: robustly find JSON in AI response
 const extractJSON = (text: string) => {
