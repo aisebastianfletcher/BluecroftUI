@@ -3,6 +3,8 @@ import { LoanData, CalculatedMetrics, RiskReport, AreaValuation, UploadedFile } 
 
 // --- CONFIGURATION ---
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+console.log("DEBUG: Key Length is", API_KEY.length); 
+
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 
 // Improved JSON Cleaner: Finds the actual JSON object inside any text the AI babbles
