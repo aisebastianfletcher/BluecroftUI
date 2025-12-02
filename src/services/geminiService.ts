@@ -177,7 +177,7 @@ export const generateRiskAnalysis = async (loanData: LoanData, metrics: Calculat
 export const askUnderwriterAI = async (question: string, loanData: LoanData, metrics: CalculatedMetrics | null, riskReport: RiskReport | null, fileNames: string[]): Promise<string> => {
   if (!genAI) return "I am in Demo Mode. Add an API Key to chat with me!";
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-00"" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
     const context = `
       System: You are an expert Underwriter.
       Context: Property at ${loanData.propertyAddress}. Loan £${loanData.loanAmount}.
