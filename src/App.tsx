@@ -1058,4 +1058,405 @@ const App: React.FC = () => {
                      >
                         <CalendarDaysIcon className="h-4 w-4" />
                      </button>
-                     <button
+                     <button 
+                        onClick={(e) => handleGenerateLetter(displayName, step, activeCase!.loanData.propertyAddress, e)}
+                        className="text-violet-500 hover:text-violet-700 p-1.5 hover:bg-violet-50 rounded-lg transition-colors opacity-100 sm:opacity-0 group-hover:opacity-100"
+                        title="Generate Request Letter"
+                     >
+                        <EnvelopeIcon className="h-4 w-4" />
+                     </button>
+                  </div>
+              </div>
+            )})}
+         </div>
+         <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+            <button 
+              onClick={() => handleGenerateLetter(displayName, nextSteps, activeCase!.loanData.propertyAddress)}
+              className="flex-1 bg-violet-100 text-violet-700 py-2 rounded-xl text-sm font-bold hover:bg-violet-200 transition-colors flex items-center justify-center gap-2"
+            >
+              <DocumentDuplicateIcon className="h-4 w-4" /> Request All Info
+            </button>
+            <button 
+              onClick={(e) => handleCalendarInvite(displayName, activeCase!.riskReport.score, e)}
+              className="flex-1 bg-slate-100 text-slate-700 py-2 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+            >
+               <CalendarDaysIcon className="h-4 w-4" /> Add to Outlook
+            </button>
+            <button 
+              onClick={(e) => handleDeleteCase(activeCase!.id, e)}
+              className="bg-red-50 text-red-600 py-2 px-4 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors flex items-center justify-center"
+              title="Delete Case"
+            >
+              <TrashIcon className="h-5 w-5" />
+            </button>
+         </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen font-sans bg-gradient-to-br from-blue-600 via-violet-600 to-fuchsia-500 text-slate-800 pb-12 overflow-x-hidden relative">
+      
+      <nav className="fixed top-0 w-full z-[100] backdrop-blur-md bg-white/90 border-b border-white/20 shadow-lg shadow-blue-900/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-tr from-violet-600 to-fuchsia-500 text-white p-2.5 rounded-2xl shadow-lg shadow-violet-200 transform transition hover:rotate-6 hover:scale-105 duration-300">
+               <CalculatorIcon className="h-6 w-6" />
+            </div>
+            <span className="text-2xl font-extrabold tracking-tight text-slate-800 hidden sm:inline">BlueCroft<span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-500">.ai</span></span>
+          </div>
+          
+          <div className="flex items-center gap-4">
+             <div className="hidden md:flex bg-slate-100/80 p-1.5 rounded-full gap-1 border border-white/50 shadow-inner">
+               <button onClick={() => setActiveTab('input')} className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 ${activeTab === 'input' ? 'bg-white text-violet-600 shadow-md transform scale-105' : 'text-slate-500 hover:text-slate-700'}`}>Input</button>
+               <button onClick={() => setActiveTab('report')} className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 ${activeTab === 'report' ? 'bg-white text-violet-600 shadow-md transform scale-105' : 'text-slate-500 hover:text-slate-700'}`}>Report</button>
+               <button onClick={() => setActiveTab('calendar')} className={`px-5 py-2 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 transition-all duration-300 ${activeTab === 'calendar' ? 'bg-white text-violet-600 shadow-md transform scale-105' : 'text-slate-500 hover:text-slate-700'}`}><CalendarDaysIcon className="h-4 w-4" /> Calendar</button>
+            </div>
+            
+            <button onClick={() => setChatOpen(!chatOpen)} className="md:hidden bg-violet-100 text-violet-600 p-2 rounded-xl"><ChatBubbleLeftRightIcon className="h-6 w-6" /></button>
+
+            <button onClick={handleSaveAndNew} className="group flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-violet-600 bg-white/50 hover:bg-white px-4 py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-violet-100">
+              <FolderPlusIcon className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+              <span className="hidden sm:inline">Save & New</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="pt-28 px-4 sm:px-6 flex flex-col lg:flex-row max-w-[90rem] mx-auto gap-6 relative min-h-[calc(100vh-8rem)]">
+        
+        {activeTab !== 'calendar' && (
+          <aside className="hidden xl:flex flex-col w-64 shrink-0 bg-white/10 backdrop-blur-md rounded-[2rem] border border-white/20 p-4 h-[calc(100vh-8rem)] sticky top-28 overflow-hidden z-10">
+            <h3 className="text-white font-bold mb-4 flex items-center gap-2"><ClockIcon className="h-5 w-5" /> Case Timeline</h3>
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+              {auditLog.length === 0 && <p className="text-white/40 text-sm italic">No actions recorded yet.</p>}
+              {auditLog.map(entry => (
+                <div key={entry.id} className="bg-white/80 p-3 rounded-xl shadow-sm text-xs animate-fadeIn">
+                  <div className="flex justify-between text-slate-400 mb-1 font-mono">
+                    <span>{entry.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="font-bold text-violet-600">{entry.user}</span>
+                  </div>
+                  <div className="font-bold text-slate-700">{entry.action}</div>
+                  <div className="text-slate-500 mt-1 leading-tight">{entry.details}</div>
+                </div>
+              ))}
+            </div>
+          </aside>
+        )}
+
+        <div className="flex-1 max-w-7xl mx-auto w-full z-20">
+          
+          {activeTab === 'calendar' && (
+             <div className="animate-fadeIn w-full h-full">
+               <div className="bg-white/95 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-2xl border border-white/60 min-h-[800px]">
+                  <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
+                     <div>
+                       <h2 className="text-3xl font-extrabold text-slate-800 flex items-center gap-3"><CalendarDaysIcon className="h-8 w-8 text-fuchsia-500" /> Employee Dashboard</h2>
+                       <p className="text-slate-500 mt-1 font-medium">Manage underwriting tasks across all applicants.</p>
+                     </div>
+                     <div className="flex items-center gap-4 bg-slate-100 p-2 rounded-2xl">
+                        {reschedulingCaseId ? (
+                           <div className="flex items-center gap-3 bg-violet-100 px-4 py-2 rounded-xl">
+                              <span className="animate-pulse flex items-center gap-2 text-violet-600 font-bold text-sm"><CursorArrowRaysIcon className="h-5 w-5" /> Select a new date for case...</span>
+                              <button onClick={handleCancelReschedule} className="bg-white text-violet-600 hover:text-red-500 p-1 rounded-full shadow-sm"><XMarkIcon className="h-4 w-4" /></button>
+                           </div>
+                        ) : reschedulingTask ? (
+                           <div className="flex items-center gap-3 bg-violet-100 px-4 py-2 rounded-xl">
+                              <span className="animate-pulse flex items-center gap-2 text-violet-600 font-bold text-sm"><CalendarDaysIcon className="h-5 w-5" /> Select date for: {reschedulingTask.task.substring(0, 20)}...</span>
+                              <button onClick={handleCancelReschedule} className="bg-white text-violet-600 hover:text-red-500 p-1 rounded-full shadow-sm"><XMarkIcon className="h-4 w-4" /></button>
+                           </div>
+                        ) : (
+                           <span className="font-bold text-slate-700 px-4">{new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span>
+                        )}
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                     <div className="lg:col-span-1 space-y-4">
+                        <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 min-h-[500px]">
+                           <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2"><ArchiveBoxIcon className="h-5 w-5 text-violet-500" /> Active Cases</h3>
+                           <div className="space-y-2">
+                              {riskReport && metrics && (
+                                <div className="relative group cursor-grab active:cursor-grabbing" draggable onDragStart={(e) => handleDragStart(e, 'current')}>
+                                  <button onClick={() => { setSelectedCaseId('current'); setSelectedDate(null); }} className={`w-full text-left p-3 rounded-xl border transition-all pr-8 ${selectedCaseId === 'current' ? 'bg-white border-violet-400 shadow-md ring-1 ring-violet-200' : 'bg-white border-slate-200 hover:border-violet-300'}`}>
+                                     <div className="flex justify-between items-center mb-1">
+                                        <span className="font-bold text-slate-700 truncate">{getAllApplicantNames(loanData)}</span>
+                                        <span className="text-[10px] bg-violet-100 text-violet-600 px-1.5 rounded uppercase font-bold shrink-0">New</span>
+                                     </div>
+                                     <div className="flex items-center gap-2 text-xs">
+                                       <span className={`w-2 h-2 rounded-full shrink-0 ${completedTasks.size === (riskReport.nextSteps?.length || 0) ? 'bg-emerald-500' : (completedTasks.size > 0 ? 'bg-orange-500' : 'bg-red-500')}`}></span>
+                                       <span className="text-slate-500">{completedTasks.size}/{riskReport.nextSteps?.length || 0} Done</span>
+                                     </div>
+                                  </button>
+                                  <button onClick={(e) => handleDeleteCase('current', e)} className="absolute top-3 right-3 p-1 text-slate-300 hover:text-red-500 transition-colors" title="Delete/Reset Current Case"><TrashIcon className="h-4 w-4" /></button>
+                                </div>
+                              )}
+                              {savedCases.map(c => (
+                                <div key={c.id} className="relative group cursor-grab active:cursor-grabbing" draggable onDragStart={(e) => handleDragStart(e, c.id)}>
+                                  <button onClick={() => { setSelectedCaseId(c.id); setSelectedDate(null); }} className={`w-full text-left p-3 rounded-xl border transition-all pr-8 ${selectedCaseId === c.id ? 'bg-white border-violet-400 shadow-md ring-1 ring-violet-200' : 'bg-white border-slate-200 hover:border-violet-300'}`}>
+                                     <div className="flex justify-between items-center mb-1">
+                                        <span className="font-bold text-slate-700 truncate">{getAllApplicantNames(c.loanData)}</span>
+                                     </div>
+                                     <div className="flex items-center gap-2 text-xs">
+                                       <span className={`w-2 h-2 rounded-full shrink-0 ${c.completedTasks.size === (c.riskReport.nextSteps?.length || 0) ? 'bg-emerald-500' : (c.completedTasks.size > 0 ? 'bg-orange-500' : 'bg-red-500')}`}></span>
+                                       <span className="text-slate-500">{c.completedTasks.size}/{c.riskReport.nextSteps?.length || 0} Done</span>
+                                     </div>
+                                  </button>
+                                  <button onClick={(e) => handleDeleteCase(c.id, e)} className="absolute top-3 right-3 p-1 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Delete Case"><TrashIcon className="h-4 w-4" /></button>
+                                </div>
+                              ))}
+                              {savedCases.length === 0 && (!riskReport || !metrics) && (<div className="text-slate-400 text-sm text-center py-10 italic">No cases found.</div>)}
+                           </div>
+                        </div>
+                     </div>
+                     <div className="lg:col-span-3">
+                        {selectedCaseId ? renderSelectedCaseDetails() : selectedDate ? renderDayDetails() : (
+                           <div>
+                              <div className="grid grid-cols-7 gap-4 mb-2 text-center text-slate-400 text-xs font-bold uppercase tracking-wider"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+                              <div className="grid grid-cols-7 gap-3">{renderCalendarDays()}</div>
+                              <div className="mt-6 bg-violet-50 rounded-2xl p-4 border border-violet-100 flex items-center justify-center text-violet-700 text-sm font-medium"><span className="mr-2">💡</span> Select a day on the calendar or drag & drop an applicant to reschedule.</div>
+                           </div>
+                        )}
+                     </div>
+                  </div>
+               </div>
+             </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className={`lg:col-span-5 space-y-6 ${activeTab === 'input' ? 'animate-fadeIn' : 'hidden'}`}>
+              <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] p-6 shadow-soft border border-white transform transition hover:shadow-glow duration-500">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-slate-700 flex items-center gap-2"><CloudArrowUpIcon className="h-5 w-5 text-violet-500" /> Document Ingestion</h3>
+                  <span className="text-xs bg-gradient-to-r from-violet-100 to-fuchsia-100 text-violet-700 px-3 py-1 rounded-full font-bold shadow-sm">AI Powered</span>
+                </div>
+                <div className="relative group">
+                  <label htmlFor="file-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-violet-200 rounded-3xl cursor-pointer bg-violet-50/30 hover:bg-violet-50 transition-all group-hover:border-violet-400 group-hover:scale-[1.02] duration-300">
+                    <div className="flex flex-col items-center gap-2 text-slate-500">
+                         {isParsing ? (<ArrowPathIcon className="h-10 w-10 text-violet-600 animate-spin" />) : (<ArrowPathIcon className="h-10 w-10 text-violet-400 group-hover:text-violet-600 transition-colors" />)}
+                        <div className="text-center"><span className="text-sm font-semibold group-hover:text-violet-700 block">{isParsing ? "Analyzing docs..." : "Upload Case Files"}</span><span className="text-xs text-slate-400 block mt-1">(Drag multiple PDFs/Images)</span></div>
+                    </div>
+                    <input key={fileInputKey} id="file-upload" type="file" className="hidden" accept=".pdf,.png,.jpg,.jpeg" multiple onChange={handleFileUpload} disabled={isParsing} />
+                  </label>
+                </div>
+                {uploadedFiles.length > 0 && (<div className="mt-4 flex flex-wrap gap-2">{uploadedFiles.map((f, i) => (<span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200 flex items-center gap-1"><DocumentTextIcon className="h-3 w-3" /> {f.name.slice(0, 15)}...</span>))}</div>)}
+                <div className="mt-4 flex justify-end"><button onClick={loadSampleData} className="text-xs font-bold text-slate-400 hover:text-violet-600 transition-colors underline decoration-dotted underline-offset-2">Load Sample Case (Joint)</button></div>
+                {parseError && <p className="text-xs text-red-500 mt-2 text-center bg-red-50 p-2 rounded-lg font-medium">{parseError}</p>}
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white rounded-[2rem] p-6 shadow-soft border border-white/50">
+                   <div className="flex items-center gap-3 mb-6 text-slate-800">
+                      <div className="bg-blue-100 p-3 rounded-2xl text-blue-600 shadow-sm"><HomeModernIcon className="h-6 w-6" /></div>
+                      <h3 className="font-bold text-xl tracking-tight">Property</h3>
+                   </div>
+                   <div className="space-y-5">
+                      <div className="group">
+                        <label className="text-xs font-extrabold text-slate-400 ml-1 uppercase tracking-wide">Address</label>
+                        <div className="relative mt-1 flex gap-2">
+                          <input type="text" name="propertyAddress" value={loanData.propertyAddress} onChange={handleInputChange} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-3 px-4 text-slate-700 font-bold focus:border-violet-400 focus:bg-white focus:outline-none transition-all shadow-inner" placeholder="Postcode or Address..." />
+                          <button onClick={handleAreaSearch} disabled={isSearchingArea || !loanData.propertyAddress} className="bg-indigo-600 text-white p-3 rounded-2xl hover:bg-indigo-500 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200" title="Check Area Value">{isSearchingArea ? <ArrowPathIcon className="h-6 w-6 animate-spin" /> : <MagnifyingGlassIcon className="h-6 w-6" />}</button>
+                        </div>
+                      </div>
+                      {areaValuation && (<div className="bg-gradient-to-br from-indigo-50 to-white rounded-2xl p-5 border border-indigo-100 animate-fadeIn text-sm shadow-sm relative overflow-hidden"><h4 className="font-bold text-indigo-900 mb-2 flex items-center gap-2 relative z-10"><SparklesIcon className="h-5 w-5 text-indigo-500" /> Market Insights</h4><p className="text-slate-700 leading-snug mb-3 relative z-10">{areaValuation.summary}</p></div>)}
+                      <div className="grid grid-cols-2 gap-4">
+                        <InputGroup label="Value (OMV)" name="propertyValue" value={loanData.propertyValue} onChange={handleInputChange} prefix="£" />
+                        <InputGroup label="Purchase Price" name="purchasePrice" value={loanData.purchasePrice} onChange={handleInputChange} prefix="£" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <InputGroup label="Refurb Cost" name="refurbCost" value={loanData.refurbCost} onChange={handleInputChange} prefix="£" />
+                        <div className="group">
+                           <label className="text-xs font-extrabold text-slate-400 ml-1 uppercase tracking-wide">Loan Type</label>
+                           <select name="loanType" value={loanData.loanType} onChange={handleInputChange} className="w-full mt-1 bg-slate-50 border-2 border-transparent rounded-2xl py-3 px-4 text-slate-700 font-bold focus:border-violet-400 focus:bg-white focus:outline-none transition-all shadow-inner appearance-none cursor-pointer">
+                              {Object.values(LoanType).map(t => <option key={t} value={t}>{t}</option>)}
+                           </select>
+                        </div>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="bg-white rounded-[2rem] p-6 shadow-soft border border-white/50">
+                   <div className="grid grid-cols-3 gap-4">
+                      <InputGroup label="Loan Amount" name="loanAmount" value={loanData.loanAmount} onChange={handleInputChange} prefix="£" className="col-span-3" />
+                      <InputGroup label="Rate (pm)" name="interestRateMonthly" value={loanData.interestRateMonthly} onChange={handleInputChange} suffix="%" />
+                      <InputGroup label="Term" name="termMonths" value={loanData.termMonths} onChange={handleInputChange} suffix="mths" className="col-span-2" />
+                   </div>
+                    <div className="bg-fuchsia-50 p-4 rounded-2xl border-2 border-fuchsia-100/50 mt-4">
+                        <label className="text-xs font-extrabold text-fuchsia-500 ml-1 uppercase mb-2 block tracking-wide">Exit Strategy</label>
+                        <select name="exitStrategy" value={loanData.exitStrategy} onChange={handleInputChange} className="w-full bg-white border-none rounded-xl py-3 px-4 text-fuchsia-900 font-bold focus:ring-2 focus:ring-fuchsia-400 shadow-sm cursor-pointer">
+                              {Object.values(ExitStrategy).map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[2rem] p-6 shadow-soft border border-white/50">
+                   <div className="flex items-center justify-between mb-6 text-slate-800">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-fuchsia-100 p-3 rounded-2xl text-fuchsia-600 shadow-sm"><UsersIcon className="h-6 w-6" /></div>
+                        <h3 className="font-bold text-xl tracking-tight">Borrower(s)</h3>
+                      </div>
+                      <button onClick={addApplicant} className="text-xs flex items-center gap-1 bg-fuchsia-50 text-fuchsia-600 px-3 py-1.5 rounded-lg hover:bg-fuchsia-100 transition-colors font-bold"><UserPlusIcon className="h-4 w-4" /> Add</button>
+                   </div>
+                   <div className="flex gap-2 overflow-x-auto pb-2 mb-4 custom-scrollbar">
+                     {loanData.applicants.map((app, index) => (
+                       <button key={app.id || index} onClick={() => setActiveApplicantIndex(index)} className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeApplicantIndex === index ? 'bg-fuchsia-600 text-white shadow-md' : 'bg-slate-50 text-slate-500 hover:bg-slate-100'}`}>
+                         {app.name || `Applicant ${index + 1}`}
+                       </button>
+                     ))}
+                   </div>
+                   {renderActiveApplicantForm()}
+                </div>
+
+                <button onClick={handleGenerateReport} disabled={isAnalyzing} className="w-full group relative overflow-hidden rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 p-5 text-white shadow-xl shadow-fuchsia-300 transition-all hover:scale-[1.02] hover:shadow-fuchsia-400 disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed">
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                    <div className="relative flex items-center justify-center gap-3 font-bold text-xl tracking-tight">
+                      {isAnalyzing ? (<><ArrowPathIcon className="h-6 w-6 animate-spin" /><span>Crunching Numbers...</span></>) : (<><SparklesIcon className="h-6 w-6 animate-bounce" /><span>Analyze & Generate Report</span></>)}
+                    </div>
+                </button>
+              </div>
+            </div>
+
+            <div className={`lg:col-span-7 space-y-8 ${(activeTab === 'input' || activeTab === 'report') ? 'animate-fadeIn' : 'hidden'}`}>
+               <div className={`${activeTab === 'input' ? 'hidden lg:block' : 'block'}`}>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                    <div className="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-[2rem] p-6 text-white shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <p className="text-indigo-100 text-sm font-bold uppercase tracking-wider mb-1">LTV</p>
+                        <p className="text-4xl font-extrabold tracking-tight">{metrics ? metrics.ltv.toFixed(1) : '0.0'}%</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-fuchsia-500 to-pink-600 rounded-[2rem] p-6 text-white shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <p className="text-pink-100 text-sm font-bold uppercase tracking-wider mb-1">LTC</p>
+                        <p className="text-4xl font-extrabold tracking-tight">{metrics ? metrics.ltc.toFixed(1) : '0.0'}%</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-[2rem] p-6 text-white shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform">
+                        <p className="text-emerald-50 text-sm font-bold uppercase tracking-wider mb-1">Gross Loan</p>
+                        <p className="text-2xl font-extrabold tracking-tight">{metrics ? formatCurrency(metrics.grossLoan) : '£0'}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {metrics && (<LTVChart metrics={metrics} propertyValue={loanData.propertyValue} loanAmount={loanData.loanAmount} />)}
+                    {riskReport ? (<RiskGauge score={riskReport.score} />) : (
+                      <div className="h-72 bg-white/10 backdrop-blur-md rounded-[2rem] border-2 border-dashed border-white/30 flex flex-col items-center justify-center text-white/60">
+                        <ShieldCheckIcon className="h-16 w-16 mb-4 opacity-50" />
+                        <span className="text-lg font-bold">Awaiting Analysis</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-900/20 overflow-hidden border border-slate-100">
+                    <div className="bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div><h2 className="text-2xl font-extrabold text-slate-800 flex items-center gap-3"><DocumentTextIcon className="h-6 w-6 text-violet-600" /> Underwriting Memo</h2></div>
+                      {riskReport && (
+                        <div className="flex gap-2">
+                          <button onClick={handleSyncCRM} disabled={isSyncingCRM} className="flex items-center gap-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-4 py-2 rounded-xl font-bold text-xs transition-colors">{isSyncingCRM ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <ServerStackIcon className="h-4 w-4" />} Sync CRM</button>
+                          <button onClick={handleDownloadPDF} disabled={isGeneratingPdf} className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-lg">{isGeneratingPdf ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <ArrowDownTrayIcon className="h-4 w-4" />} Export</button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-8 min-h-[300px]">
+                      {riskReport ? (
+                        <div className="space-y-8 animate-fadeIn">
+                          <div className="bg-violet-50 rounded-3xl p-6 border border-violet-100">
+                              <h3 className="text-violet-900 font-bold mb-3">Executive Summary</h3>
+                              <p className="text-slate-700 leading-relaxed font-medium">{riskReport.summary}</p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                              <div>
+                                <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500"></span> Key Risks</h4>
+                                <ul className="space-y-2">{riskReport.risks.map((risk, idx) => (<li key={idx} className="bg-red-50 p-3 rounded-xl text-slate-700 text-sm font-medium">{risk}</li>))}</ul>
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Mitigations</h4>
+                                <ul className="space-y-2">{riskReport.mitigations.map((mit, idx) => (<li key={idx} className="bg-emerald-50 p-3 rounded-xl text-slate-700 text-sm font-medium">{mit}</li>))}</ul>
+                              </div>
+                          </div>
+                          <div className="border-t-2 border-slate-100 pt-8 mt-8">
+                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                                <h4 className="font-bold text-slate-800 flex items-center gap-2 text-xl"><ClipboardDocumentCheckIcon className="h-6 w-6 text-fuchsia-500" /> Action Plan</h4>
+                                <div className="flex gap-2">
+                                  <button onClick={(e) => handleCalendarInvite(getAllApplicantNames(loanData), riskReport.score, e)} className="text-xs flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition-colors font-semibold"><CalendarDaysIcon className="h-4 w-4" /> Add Follow-up</button>
+                                  <button onClick={(e) => handleGenerateLetter(getMainApplicantName(loanData), riskReport.nextSteps, loanData.propertyAddress, e)} className="text-xs flex items-center gap-1 bg-violet-100 hover:bg-violet-200 text-violet-700 px-3 py-1.5 rounded-lg transition-colors font-semibold"><DocumentDuplicateIcon className="h-4 w-4" /> Request All Info</button>
+                                </div>
+                              </div>
+                              <div className="bg-slate-50 rounded-3xl p-2 border border-slate-100">
+                                {riskReport.nextSteps.map((step, idx) => (
+                                  <div key={idx} className={`flex items-center gap-4 p-3 rounded-xl transition-all cursor-pointer group ${completedTasks.has(step) ? 'bg-emerald-50/50' : 'hover:bg-white hover:shadow-sm'}`} onClick={() => handleTaskToggle(step)}>
+                                    <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${completedTasks.has(step) ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 bg-white'}`}>
+                                        {completedTasks.has(step) && <CheckCircleIcon className="w-4 h-4 text-white" />}
+                                    </div>
+                                    <div className="flex-1">
+                                        <span className={`font-medium transition-colors ${completedTasks.has(step) ? 'text-emerald-800 line-through decoration-emerald-300' : 'text-slate-600'}`}>{step}</span>
+                                        <button onClick={(e) => handleGenerateLetter(getMainApplicantName(loanData), step, loanData.propertyAddress, e)} className="text-xs text-violet-500 hover:text-violet-700 font-bold block mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"><EnvelopeIcon className="h-3 w-3" /> Generate Letter</button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-20 opacity-40">
+                          <DocumentTextIcon className="h-24 w-24 text-slate-300 mb-4" />
+                          <p className="text-xl font-bold text-slate-400">Ready to Analyze</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-4 pointer-events-none">
+          <div className="pointer-events-auto">
+            {chatOpen && (
+              <div className="bg-white rounded-[2rem] shadow-2xl w-80 sm:w-96 h-[30rem] flex flex-col border border-slate-200 overflow-hidden animate-fadeIn mb-4">
+                <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 p-4 flex justify-between items-center text-white">
+                  <h3 className="font-bold flex items-center gap-2"><SparklesIcon className="h-4 w-4" /> Underwriter Assistant</h3>
+                  <button onClick={() => setChatOpen(false)} className="hover:bg-white/20 rounded-full p-1"><XMarkIcon className="h-5 w-5" /></button>
+                </div>
+                <div className="flex-1 bg-slate-50 p-4 overflow-y-auto custom-scrollbar space-y-4">
+                  {chatMessages.length === 0 && (<div className="text-center text-slate-400 text-sm mt-10 px-4"><p>Ask me about the loan application, market data, or missing documents.</p></div>)}
+                  {chatMessages.map(msg => (
+                    <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] rounded-2xl p-3 text-sm shadow-sm ${msg.sender === 'user' ? 'bg-violet-600 text-white rounded-br-none' : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'}`}>{msg.text}</div>
+                    </div>
+                  ))}
+                  {isChatThinking && (
+                    <div className="flex justify-start">
+                      <div className="bg-white text-slate-500 border border-slate-100 rounded-2xl rounded-bl-none p-3 text-xs flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-100"></span>
+                          <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-200"></span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+                <form onSubmit={handleChatSubmit} className="p-3 bg-white border-t border-slate-100 flex gap-2">
+                  <input className="flex-1 bg-slate-100 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400" placeholder="Ask a question..." value={chatInput} onChange={e => setChatInput(e.target.value)} />
+                  <button type="submit" disabled={!chatInput.trim() || isChatThinking} className="bg-violet-600 text-white p-2 rounded-xl hover:bg-violet-700 disabled:opacity-50"><PaperAirplaneIcon className="h-5 w-5" /></button>
+                </form>
+              </div>
+            )}
+            <button onClick={() => setChatOpen(!chatOpen)} className="bg-slate-900 hover:bg-slate-800 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform duration-300 group"><ChatBubbleLeftRightIcon className="h-7 w-7 group-hover:rotate-12 transition-transform" /></button>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  );
+};
+
+const InputGroup: React.FC<{ label: string; name: string; value: string | number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; type?: string; prefix?: string; suffix?: string; className?: string; placeholder?: string; }> = ({ label, name, value, onChange, type = "text", prefix, suffix, className = "", placeholder }) => (
+  <div className={`group ${className}`}>
+    <label className="text-xs font-extrabold text-slate-400 ml-1 uppercase tracking-wide">{label}</label>
+    <div className="relative mt-1">
+      {prefix && <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold">{prefix}</div>}
+      <input type={typeof value === 'number' ? 'number' : type} name={name} value={value} onChange={onChange} placeholder={placeholder} className={`w-full bg-slate-50 border-2 border-transparent rounded-2xl py-3 text-slate-700 font-bold focus:border-violet-400 focus:bg-white focus:outline-none transition-all shadow-inner placeholder-slate-300 ${prefix ? 'pl-8' : 'pl-4'} ${suffix ? 'pr-12' : 'pr-4'}`} />
+      {suffix && <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 font-bold text-xs uppercase">{suffix}</div>}
+    </div>
+  </div>
+);
+
+export default App;
