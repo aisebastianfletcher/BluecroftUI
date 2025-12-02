@@ -1,4 +1,15 @@
+export enum LoanType {
+  BRIDGING = 'Bridging',
+  REFURBISHMENT = 'Refurbishment',
+  DEVELOPMENT = 'Development',
+  COMMERCIAL = 'Commercial'
+}
 
+export enum ExitStrategy {
+  SALE = 'Sale',
+  REFINANCE = 'Refinance',
+  DEVELOPMENT_EXIT = 'Development Exit'
+}
 
 export interface Applicant {
   id: string;
@@ -10,7 +21,7 @@ export interface Applicant {
 }
 
 export interface LoanData {
-  id?: string;
+  id: string;
   applicants: Applicant[];
   loanAmount: number;
   propertyValue: number;
@@ -22,51 +33,37 @@ export interface LoanData {
   propertyAddress: string;
   exitStrategy: ExitStrategy;
   scheduledDate?: Date;
-  taskDueDates?: Record<string, string>;
-}
-
-export enum LoanType {
-  BRIDGING = 'Bridging',
-  DEVELOPMENT = 'Development',
-  REFURBISHMENT = 'Refurbishment'
-}
-
-export enum ExitStrategy {
-  SALE = 'Sale of Property',
-  REFINANCE = 'Refinance to Term Loan',
-  DEVELOPMENT_EXIT = 'Development Exit Finance',
-  CASH_SETTLEMENT = 'Cash Settlement',
-  OTHER = 'Other'
+  taskDueDates?: Record<string, string>; // ISO Date strings
+  createdAt?: Date;
 }
 
 export interface CalculatedMetrics {
-  ltv: number; // Loan to Value
-  ltc: number; // Loan to Cost
+  ltv: number;
+  ltc: number;
   monthlyInterest: number;
   totalInterest: number;
   grossLoan: number;
 }
 
 export interface RiskReport {
-  score: number; // 0-100
+  score: number;
   summary: string;
   risks: string[];
   mitigations: string[];
-  nextSteps: string[]; // Actionable items for the employee
+  nextSteps: string[];
 }
 
 export interface AreaValuation {
   summary: string;
-  sources: { title: string; uri: string }[];
+  estimatedValue?: number;
+  confidence?: number;
 }
-
-// --- New Types for Advanced Features ---
 
 export interface AuditLogEntry {
   id: string;
   timestamp: Date;
   action: string;
-  user: string; // e.g. "Underwriter"
+  user: string;
   details: string;
 }
 
@@ -90,5 +87,5 @@ export interface CaseRecord {
   riskReport: RiskReport;
   completedTasks: Set<string>;
   createdAt: Date;
-  scheduledDate?: Date;
+  scheduledDate: Date;
 }
